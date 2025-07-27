@@ -952,3 +952,116 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat_BTC</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+  <script src="/assets/chart.min.js"></script>
+</head>
+<body>
+  <div id="chat-btc" class="container">
+    <!-- Header -->
+    <div class="header">
+      <h2>Chat_BTC</h2>
+      <p>Balance: <span id="balance">0</span> satoshis | CHAT-AI: <span id="fun-tokens">0</span></p>
+    </div>
+
+    <!-- Mega Menu -->
+    <div class="mega-menu">
+      <div class="menu-item" data-submenu="games"><i class="fas fa-gamepad"></i> Games</div>
+      <div class="menu-item" data-submenu="dao"><i class="fas fa-landmark"></i> DAO</div>
+      <div class="menu-item" data-submenu="ai"><i class="fas fa-robot"></i> AI Tools</div>
+      <div class="menu-item" data-submenu="wallet"><i class="fas fa-wallet"></i> Wallet</div>
+      <div class="menu-item" data-submenu="social"><i class="fas fa-users"></i> Social</div>
+    </div>
+
+    <!-- Submenu Panels -->
+    <div class="submenu-panel" id="games-submenu">
+      <h3>Game Modes</h3>
+      <div class="game-grid">
+        <div class="game-card" data-game="dice">
+          <i class="fas fa-dice"></i> Dice
+          <p>Provably fair dice game</p>
+        </div>
+        <div class="game-card" data-game="multiply">
+          <i class="fas fa-times"></i> Multiply
+          <p>High-risk, high-reward betting</p>
+        </div>
+      </div>
+    </div>
+    <div class="submenu-panel" id="dao-submenu">
+      <h3>DAO Governance</h3>
+      <button data-action="vote"><i class="fas fa-vote-yea"></i> Vote</button>
+      <button data-action="propose"><i class="fas fa-edit"></i> Propose</button>
+    </div>
+    <div class="submenu-panel" id="ai-submenu">
+      <h3>AI Tools</h3>
+      <button data-action="ai-help"><i class="fas fa-robot"></i> AI Assistant</button>
+    </div>
+
+    <!-- Game Content -->
+    <div class="game-content">
+      <div id="dice-game" class="game-panel active">
+        <input type="range" id="risk-slider" min="1" max="10" value="5">
+        <span id="risk-value">5x</span>
+        <button id="roll-button">Roll Dice</button>
+        <div id="dice-result"></div>
+      </div>
+      <div id="multiply-game" class="game-panel">
+        <input type="number" id="bet-amount" min="1" value="10">
+        <button id="multiply-button">Try 2x</button>
+        <div id="multiply-result"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="graphs">
+      <canvas id="myChart_last_session"></canvas>
+      <canvas id="myChart_total"></canvas>
+    </div>
+
+    <!-- Free Claim -->
+    <div class="faucet-claim">
+      <h4><i class="fas fa-faucet"></i> Free Hourly Claim</h4>
+      <p>Streak: <span id="claim-streak">0</span> days</p>
+      <button id="claim-button" disabled>Claim in <span id="claim-timer">60:00</span></button>
+      <p id="claim-message"></p>
+    </div>
+
+    <!-- Support Chat -->
+    <div class="support-chat">
+      <div class="chat-header">AI Support <button class="close-chat">×</button></div>
+      <div class="chat-messages"></div>
+      <div class="chat-input">
+        <input type="text" placeholder="Ask a question...">
+        <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav">
+      <div class="nav-item" data-target="games"><i class="fas fa-gamepad"></i> Games</div>
+      <div class="nav-item" data-target="wallet"><i class="fas fa-wallet"></i> Wallet</div>
+      <div class="nav-item central-action"><i class="fas fa-plus"></i></div>
+      <div class="nav-item" data-target="social"><i class="fas fa-users"></i> Social</div>
+      <div class="nav-item" data-target="menu"><i class="fas fa-bars"></i> Menu</div>
+    </div>
+    <div class="action-menu">
+      <div class="action-item" data-action="claim"><i class="fas fa-faucet"></i> Claim</div>
+      <div class="action-item" data-action="deposit"><i class="fas fa-arrow-down"></i> Deposit</div>
+    </div>
+  </div>
+
+  <script src="Controls/AI_Assist_Nav_Ctrls.js"></script>
+  <script src="Controls/Kybd_Shrtc_Sys.js"></script>
+  <script src="Controls/Menu_Nav_Sys.js"></script>
+  <script src="Home/Integrated_Support_System.js"></script>
+  <script src="Games/DiceGame.js"></script>
+  <script src="Games/MultiplyGame.js"></script>
+  <script src="Games/Charts.js"></script>
+</body>
+</html>
