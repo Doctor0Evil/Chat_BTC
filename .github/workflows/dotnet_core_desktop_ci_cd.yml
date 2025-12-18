@@ -1,0 +1,70 @@
+name: dotnet_core_desktop
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-pack:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        configuration: [ Debug, Release ]
+
+    env:
+      Solution_Name: your-solution-name.sln
+      Test_Project_Path: tests/YourTestsProject.csproj
+      Wap_Project_Directory: src/YourWapProject
+      Wap_Project_Path: src/YourWapProject/YourWapProject.wapproj
+      Appx_Package_Build_Mode: SideloadOnly
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Execute unit tests
+        run: dotnet test "${{ env.Test_Project_Path }}" --configuration ${{ matrix.configuration }}
+
+      - name: Restore solution
+        run: msbuild "${{ env.Solution_Name }}" /t:Restore /p:Configuration=${{ matrix.configuration }}
+
+      - name: Decode PFX certificate
+        shell: pwsh
+        run: |
+          $bytes = [Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+          $pfxPath = "${{ env.Wap_Project_Directory }}\GitHubActionsWorkflow.pfx"
+          [IO.File]::WriteAllBytes($pfxPath, $bytes)
+
+      - name: Create app package
+        shell: pwsh
+        run: |
+          msbuild "${{ env.Wap_Project_Path }}" `
+            /p:Configuration=${{ matrix.configuration }} `
+            /p:UapAppxPackageBuildMode=${{ env.Appx_Package_Build_Mode }} `
+            /p:AppxBundle=Always `
+            /p:Appx_Bundle_Platforms="x86|x64" `
+            /p:PackageCertificateKeyFile="GitHubActionsWorkflow.pfx" `
+            /p:PackageCertificatePassword="${{ secrets.Pfx_Key }}"
+
+      - name: Remove PFX
+        shell: pwsh
+        run: Remove-Item "${{ env.Wap_Project_Directory }}\GitHubActionsWorkflow.pfx" -ErrorAction SilentlyContinue
+
+      - name: Upload MSIX artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: msix-package-${{ matrix.configuration }}
+          path: "${{ env.Wap_Project_Directory }}/AppPackages"
