@@ -1,0 +1,81 @@
+name: secure-git-mass-correction
+
+on:
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: "0 * * * *"   # hourly, adjust as required
+
+jobs:
+  secure_layers:
+    runs-on: ubuntu-latest
+
+    env:
+      REPO_NAME: ${{ github.repository }}
+      COMMIT_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize Nanbit Truncation
+        id: nanbit
+        shell: bash
+        run: |
+          # Deterministic 200-char Nanbit truncation over changed paths.
+          changed_paths="$(git diff --name-only HEAD^ HEAD || true)"
+          max_len=200
+          out=""
+          while IFS= read -r p; do
+            cut_p="$(printf "%s" "$p" | cut -c1-${max_len})"
+            out="${out}${cut_p}"$'\n'
+          done <<< "$changed_paths"
+          printf '%s\n' "$out" > .nanbit_paths.txt
+          echo "paths_file=.nanbit_paths.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Generate entangled .bitlinks tensor
+        id: bitlinks
+        shell: bash
+        run: |
+          # Use commit SHA to derive a deterministic hex tensor id.
+          tensor_id="$(printf '%s' "${COMMIT_SHA}" | sha256sum | cut -d' ' -f1)"
+          echo "tensor_id=${tensor_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate compliance over layers
+        id: compliance
+        shell: bash
+        run: |
+          paths_file="${{ steps.nanbit.outputs.paths_file }}"
+          tensor_id="${{ steps.bitlinks.outputs.tensor_id }}"
+
+          if [ ! -s "$paths_file" ]; then
+            echo "No changed paths to validate."
+            exit 0
+          fi
+
+          # Simple policy: block paths with control chars or '..'
+          blocked=0
+          while IFS= read -r p; do
+            if printf "%s" "$p" | grep -q '\.\.'; then
+              echo "Blocked path (parent traversal): $p"
+              blocked=1
+            fi
+            if printf "%s" "$p" | LC_ALL=C grep -q $'\x00'; then
+              echo "Blocked path (NUL byte): $p"
+              blocked=1
+            fi
+          done < "$paths_file"
+
+          echo "Compliance tensor: ${tensor_id}"
+          if [ "$blocked" -ne 0 ]; then
+            echo "Compliance failure detected."
+            exit 1
+          fi
+          echo "Compliance OK."
+
+      - name: Upload Nanbit path snapshot
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nanbit-paths-${{ github.sha }}
+          path: .nanbit_paths.txt
